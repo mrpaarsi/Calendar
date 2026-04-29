@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a1f2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Prestations">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Prestations BE</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════ */
+:root {
+  --bg:         #0d1117;
+  --s1:         #161b22;
+  --s2:         #1c2128;
+  --s3:         #21262d;
+  --border:     #30363d;
+  --border2:    #484f58;
+  --text:       #e6edf3;
+  --muted:      #7d8590;
+  --gold:       #e3b341;
+  --gold-dim:   #7d6514;
+  --green:      #3fb950;
+  --green-bg:   rgba(63,185,80,0.1);
+  --red:        #f85149;
+  --red-bg:     rgba(248,81,73,0.1);
+  --blue:       #58a6ff;
+  --blue-bg:    rgba(88,166,255,0.1);
+  --purple:     #bc8cff;
+  --purple-bg:  rgba(188,140,255,0.1);
+  --orange:     #d29922;
+  --sat-bg:     #161b22;
+  --sun-bg:     #0d1117;
+  --hol-bg:     rgba(210,153,34,0.07);
+  --ff:         'Space Grotesk', sans-serif;
+  --fm:         'Space Mono', monospace;
+  --radius:     8px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:16px;}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--ff);
+  min-height:100vh;-webkit-font-smoothing:antialiased;
+}
+button{cursor:pointer;font-family:var(--ff);}
+input{font-family:var(--fm);}
+
+/* ═══════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════ */
+.app{
+  max-width:1100px;margin:0 auto;
+  padding:20px 16px max(60px,calc(env(safe-area-inset-bottom)+60px));
+  padding-top:max(20px,env(safe-area-inset-top,20px));
+}
+
+/* ═══════════════════════════════════════
+   HEADER
+═══════════════════════════════════════ */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin-bottom:20px;flex-wrap:wrap;
+}
+.hdr-left{}
+.hdr-title{font-size:1.4rem;font-weight:700;color:var(--text);letter-spacing:-0.3px;}
+.hdr-title span{color:var(--gold);}
+.hdr-sub{font-family:var(--fm);font-size:0.58rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:3px;}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+
+.nav-btn{
+  width:36px;height:36px;border:1px solid var(--border2);background:var(--s1);
+  color:var(--muted);border-radius:var(--radius);font-size:1rem;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.nav-btn:hover{border-color:var(--gold);color:var(--gold);}
+.nav-btn.icon{font-size:0.85rem;}
+
+.month-display{
+  font-family:var(--fm);font-size:0.85rem;font-weight:700;
+  color:var(--gold);min-width:160px;text-align:center;letter-spacing:0.02em;
+}
+
+/* sync status */
+.sync-bar{
+  font-family:var(--fm);font-size:0.6rem;letter-spacing:0.06em;
+  text-align:right;min-height:16px;margin-bottom:12px;color:var(--muted);
+  transition:color .3s;
+}
+
+/* ═══════════════════════════════════════
+   STAT CARDS
+═══════════════════════════════════════ */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+.card{
+  background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px 14px;position:relative;overflow:hidden;
+}
+.card-bar{
+  position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--border);
+}
+.card-fill{height:100%;transition:width .5s ease;border-radius:1px;}
+.card-lbl{font-family:var(--fm);font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.card-val{font-family:var(--fm);font-size:1.3rem;font-weight:700;line-height:1;}
+.card-val.gold  {color:var(--gold);}
+.card-val.green {color:var(--green);}
+.card-val.red   {color:var(--red);}
+.card-val.blue  {color:var(--blue);}
+.card-sub{font-size:0.68rem;color:var(--muted);margin-top:4px;}
+
+/* ═══════════════════════════════════════
+   CALENDAR BOX
+═══════════════════════════════════════ */
+.cal{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.cal-head{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  border-bottom:1px solid var(--border);background:var(--s2);
+}
+.cal-head-day{
+  padding:8px 4px;text-align:center;font-family:var(--fm);
+  font-size:0.58rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);
+}
+.cal-head-day.sat{color:var(--gold-dim);}
+.cal-head-day.sun{color:var(--border2);}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);}
+
+/* ═══════════════════════════════════════
+   DAY CELLS
+═══════════════════════════════════════ */
+.day{
+  border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  min-height:105px;padding:7px 8px;position:relative;transition:background .12s;
+}
+.day:nth-child(7n){border-right:none;}
+
+.day.work:hover   {background:var(--s2);}
+.day.sat          {background:var(--sat-bg);}
+.day.sat:hover    {background:var(--s2);}
+.day.sun          {background:var(--sun-bg);}
+.day.hol          {background:var(--hol-bg);}
+.day.empty        {background:transparent;min-height:105px;}
+.day.recup        {background:var(--purple-bg);}
+.day.recup:hover  {background:rgba(188,140,255,0.15);}
+
+/* today highlight */
+.day.today{outline:1.5px solid var(--gold);outline-offset:-1px;}
+
+/* top row */
+.day-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;}
+.day-num{
+  font-family:var(--fm);font-size:0.7rem;color:var(--muted);
+  width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;flex-shrink:0;
+}
+.day.today .day-num{background:var(--gold);color:var(--bg);font-weight:700;}
+
+.day-tag{
+  font-family:var(--fm);font-size:0.5rem;letter-spacing:0.06em;
+  text-transform:uppercase;padding:2px 5px;border-radius:3px;
+}
+.tag-hol   {background:var(--hol-bg);color:var(--orange);border:1px solid rgba(210,153,34,0.3);}
+.tag-sat   {color:var(--gold-dim);}
+.tag-sun   {color:var(--border2);}
+.tag-recup {background:var(--purple-bg);color:var(--purple);}
+
+.day-holname{
+  font-family:var(--fm);font-size:0.52rem;color:var(--orange);
+  text-transform:uppercase;letter-spacing:0.04em;line-height:1.3;
+  margin-bottom:3px;
+}
+
+/* hours input */
+.inp-row{display:flex;align-items:center;gap:4px;margin-top:3px;}
+.h-inp{
+  width:48px;background:var(--s3);border:1px solid var(--border);
+  border-radius:5px;color:var(--text);font-family:var(--fm);
+  font-size:0.78rem;padding:3px 4px;text-align:center;
+  outline:none;transition:border-color .15s;touch-action:manipulation;
+}
+.h-inp:focus{border-color:var(--gold);}
+.h-inp::placeholder{color:var(--border2);}
+.h-unit{font-family:var(--fm);font-size:0.55rem;color:var(--muted);}
+
+/* badge */
+.day-badge{
+  margin-top:3px;font-family:var(--fm);font-size:0.58rem;
+  padding:2px 5px;border-radius:3px;display:inline-block;
+  line-height:1.3;
+}
+.b-pos    {background:var(--green-bg);color:var(--green);}
+.b-neg    {background:var(--red-bg);color:var(--red);}
+.b-zero   {color:var(--muted);}
+.b-bonus  {background:var(--blue-bg);color:var(--blue);}
+.b-recup  {background:var(--purple-bg);color:var(--purple);}
+
+/* recup button */
+.recup-btn{
+  margin-top:4px;width:100%;background:transparent;
+  border:1px dashed var(--border2);border-radius:4px;
+  color:var(--muted);font-family:var(--fm);font-size:0.52rem;
+  letter-spacing:0.06em;text-transform:uppercase;padding:3px 0;
+  transition:all .15s;touch-action:manipulation;
+}
+.recup-btn:hover{border-color:var(--purple);color:var(--purple);}
+.recup-btn.on{background:var(--purple-bg);border-color:var(--purple);border-style:solid;color:var(--purple);}
+
+/* ═══════════════════════════════════════
+   LEGEND
+═══════════════════════════════════════ */
+.legend{
+  display:flex;gap:14px;padding:10px 14px;flex-wrap:wrap;
+  border-top:1px solid var(--border);background:var(--s2);
+}
+.leg{display:flex;align-items:center;gap:5px;font-family:var(--fm);font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+
+/* ═══════════════════════════════════════
+   CUMUL BANNER
+═══════════════════════════════════════ */
+.cumul{
+  margin-top:12px;background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px 18px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;
+}
+.cumul-lbl{font-family:var(--fm);font-size:0.55rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:5px;}
+.cumul-detail{font-family:var(--fm);font-size:0.62rem;color:var(--muted);line-height:1.8;}
+.cumul-detail strong{color:var(--text);}
+.cumul-val{font-family:var(--fm);font-size:1.8rem;font-weight:700;}
+.cumul-val.green{color:var(--green);}
+.cumul-val.red  {color:var(--red);}
+.cumul-val.gold {color:var(--gold);}
+
+/* ═══════════════════════════════════════
+   HOLIDAYS RECAP
+═══════════════════════════════════════ */
+.hol-recap{
+  margin-top:8px;background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--radius);padding:12px 18px;
+}
+.hol-recap-ttl{font-family:var(--fm);font-size:0.55rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange);margin-bottom:8px;}
+.hol-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.hol-chip{font-family:var(--fm);font-size:0.58rem;padding:3px 8px;background:var(--hol-bg);border:1px solid rgba(210,153,34,0.25);border-radius:20px;color:var(--orange);}
+
+/* ═══════════════════════════════════════
+   CONFIG MODAL
+═══════════════════════════════════════ */
+.modal-bg{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);
+  z-index:900;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);padding:16px;
+}
+.modal-bg.open{display:flex;}
+.modal{
+  background:var(--s1);border:1px solid var(--border2);border-radius:12px;
+  padding:24px;width:100%;max-width:460px;
+}
+.modal-title{font-size:1rem;font-weight:700;color:var(--gold);margin-bottom:4px;}
+.modal-sub{font-family:var(--fm);font-size:0.58rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:16px;}
+.modal-steps{
+  background:var(--bg);border-radius:6px;padding:12px 14px;
+  font-family:var(--fm);font-size:0.62rem;color:var(--muted);
+  line-height:2;margin-bottom:14px;
+}
+.modal-steps strong{color:var(--text);}
+.modal-steps code{background:var(--s3);padding:1px 5px;border-radius:3px;color:var(--gold);}
+.modal-inp{
+  width:100%;background:var(--bg);border:1px solid var(--border2);
+  border-radius:6px;color:var(--text);font-family:var(--fm);
+  font-size:0.72rem;padding:10px 12px;outline:none;
+  transition:border-color .15s;margin-bottom:12px;
+}
+.modal-inp:focus{border-color:var(--gold);}
+.modal-inp::placeholder{color:var(--border2);}
+.modal-btns{display:flex;gap:8px;}
+.btn-save{
+  flex:1;background:var(--gold);color:var(--bg);border:none;
+  border-radius:6px;padding:10px;font-family:var(--fm);font-size:0.68rem;
+  font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
+}
+.btn-save:hover{opacity:0.9;}
+.btn-cancel{
+  background:transparent;color:var(--muted);border:1px solid var(--border2);
+  border-radius:6px;padding:10px 16px;font-family:var(--fm);font-size:0.68rem;
+}
+.btn-cancel:hover{color:var(--text);}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE — DESKTOP
+═══════════════════════════════════════ */
+
+
+/* ═══════════════════════════════════════
+   MOBILE — Vue semaine (≤ 600px)
+   La grille 7 colonnes est remplacée par
+   une vue liste : une semaine = une carte
+═══════════════════════════════════════ */
+@media(max-width:900px){
+
+  /* App padding */
+  .app{padding-left:10px;padding-right:10px;}
+
+  /* Header compact */
+  .hdr{gap:6px;margin-bottom:12px;}
+  .hdr-title{font-size:1rem;}
+  .hdr-sub{display:none;}
+  .month-display{font-size:0.8rem;min-width:100px;}
+  .nav-btn{width:34px;height:34px;font-size:0.9rem;}
+
+  /* Stats 2×2 */
+  .stats{grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px;}
+  .card{padding:10px 12px;}
+  .card-lbl{font-size:0.5rem;}
+  .card-val{font-size:1.1rem;}
+  .card-sub{font-size:0.6rem;}
+
+  /* ── Calendrier mobile : masquer la grille desktop ── */
+  .cal-head{display:none;}
+  .cal-grid{display:none;}
+
+  /* ── Semaines en cartes ── */
+  .week-cards{display:flex;flex-direction:column;gap:1px;}
+  .week-card{background:var(--s2);border-bottom:1px solid var(--border);}
+  .week-label{
+    font-family:var(--fm);font-size:0.55rem;text-transform:uppercase;
+    letter-spacing:0.1em;color:var(--muted);padding:6px 12px 4px;
+  }
+  .week-days{display:flex;flex-direction:column;gap:0;}
+
+  /* Ligne par jour */
+  .m-day{
+    display:grid;
+    grid-template-columns:52px 1fr auto;
+    align-items:center;gap:8px;
+    padding:8px 12px;
+    border-top:1px solid var(--border);
+    min-height:52px;
+  }
+  .m-day.sun-row{opacity:0.3;pointer-events:none;}
+  .m-day.hol-row{background:var(--hol-bg);}
+  .m-day.recup-row{background:var(--purple-bg);}
+  .m-day.today-row{outline:1.5px solid var(--gold);outline-offset:-1px;}
+
+  /* Colonne gauche : nom du jour + numéro */
+  .m-day-left{display:flex;flex-direction:column;align-items:flex-start;gap:1px;}
+  .m-day-name{font-family:var(--fm);font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+  .m-day-num{
+    font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--text);
+    width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+  }
+  .today-row .m-day-num{background:var(--gold);color:var(--bg);}
+  .m-day-tag{font-family:var(--fm);font-size:0.5rem;color:var(--orange);text-transform:uppercase;margin-top:1px;}
+  .m-day-tag.recup-tag{color:var(--purple);}
+
+  /* Colonne centre : input + badge */
+  .m-day-mid{display:flex;flex-direction:column;gap:3px;}
+  .m-inp-row{display:flex;align-items:center;gap:4px;}
+  .m-h-inp{
+    width:56px;height:34px;background:var(--s3);border:1px solid var(--border2);
+    border-radius:6px;color:var(--text);font-family:var(--fm);font-size:0.88rem;
+    font-weight:700;padding:4px 6px;text-align:center;outline:none;
+    transition:border-color .15s;touch-action:manipulation;
+  }
+  .m-h-inp:focus{border-color:var(--gold);}
+  .m-h-inp::placeholder{color:var(--border2);}
+  .m-h-unit{font-family:var(--fm);font-size:0.6rem;color:var(--muted);}
+  .m-badge{
+    font-family:var(--fm);font-size:0.62rem;padding:2px 6px;
+    border-radius:3px;display:inline-block;
+  }
+
+  /* Colonne droite : bouton récup */
+  .m-recup-btn{
+    width:36px;height:36px;border-radius:6px;border:1px dashed var(--border2);
+    background:transparent;color:var(--muted);font-size:0.9rem;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .15s;touch-action:manipulation;flex-shrink:0;
+  }
+  .m-recup-btn:hover,.m-recup-btn:active{border-color:var(--purple);color:var(--purple);}
+  .m-recup-btn.on{background:var(--purple-bg);border-color:var(--purple);border-style:solid;color:var(--purple);}
+  .m-recup-btn-placeholder{width:36px;height:36px;flex-shrink:0;}
+
+  /* Légende, cumul, fériés */
+  .legend{gap:8px;padding:8px 12px;}
+  .leg{font-size:0.5rem;}
+  .cumul{padding:12px 14px;}
+  .cumul-val{font-size:1.4rem;}
+  .cumul-detail{font-size:0.6rem;}
+  .hol-chip{font-size:0.55rem;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-title">Calendrier <span>Prestations</span></div>
+      <div class="hdr-sub">Belgique · 38h/sem · Lun–Ven · Fériés récupérables</div>
+    </div>
+    <div class="hdr-right">
+      <button class="nav-btn" id="btnPrev" title="Mois précédent">←</button>
+      <div class="month-display" id="monthDisplay"></div>
+      <button class="nav-btn" id="btnNext" title="Mois suivant">→</button>
+      <button class="nav-btn icon" id="btnSync" title="Synchroniser">⟳</button>
+      <button class="nav-btn icon" id="btnCfg"  title="Configurer synchro">⚙</button>
+    </div>
+  </header>
+
+  <!-- SYNC STATUS -->
+  <div class="sync-bar" id="syncBar"></div>
+
+  <!-- STAT CARDS -->
+  <div class="stats">
+    <div class="card">
+      <div class="card-lbl">Heures attendues</div>
+      <div class="card-val blue" id="vExpected">—</div>
+      <div class="card-sub" id="sExpected">— jours Lun–Ven hors fériés</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Heures prestées</div>
+      <div class="card-val" id="vDone">0h00</div>
+      <div class="card-sub" id="sDone">0 jour encodé</div>
+      <div class="card-bar"><div class="card-fill" id="fDone" style="width:0%;background:var(--blue)"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Balance ce mois</div>
+      <div class="card-val gold" id="vBalance">+0h00</div>
+      <div class="card-sub">vs jours encodés</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Solde cumulé</div>
+      <div class="card-val gold" id="vCumul">+0h00</div>
+      <div class="card-sub">tous mois confondus</div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="cal">
+    <div class="cal-head">
+      <div class="cal-head-day">Lun</div>
+      <div class="cal-head-day">Mar</div>
+      <div class="cal-head-day">Mer</div>
+      <div class="cal-head-day">Jeu</div>
+      <div class="cal-head-day">Ven</div>
+      <div class="cal-head-day sat">Sam</div>
+      <div class="cal-head-day sun">Dim</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="outline:1.5px solid var(--gold);"></div>Aujourd'hui</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--orange);opacity:.6"></div>Férié (récup.)</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--purple-bg);border:1px solid var(--purple)"></div>Récupéré</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--green-bg);border:1px solid var(--green)"></div>Excédent</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--red-bg);border:1px solid var(--red)"></div>Déficit</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--blue-bg);border:1px solid var(--blue)"></div>Bonus Sam/Férié</div>
+    </div>
+  </div>
+
+  <!-- MOBILE WEEK CARDS (hidden on desktop via CSS) -->
+  <div class="cal" id="calMobile" style="display:none">
+    <div class="week-cards" id="weekCards"></div>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="outline:1.5px solid var(--gold);"></div>Aujourd'hui</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--orange);opacity:.6"></div>Férié</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--purple-bg);border:1px solid var(--purple)"></div>Récupéré</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--green-bg);border:1px solid var(--green)"></div>Excédent</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--red-bg);border:1px solid var(--red)"></div>Déficit</div>
+    </div>
+  </div>
+
+  <!-- CUMUL BANNER -->
+  <div class="cumul">
+    <div>
+      <div class="cumul-lbl">Solde cumulé total</div>
+      <div class="cumul-detail" id="cumulDetail"></div>
+    </div>
+    <div class="cumul-val gold" id="cumulVal">+0h00</div>
+  </div>
+
+  <!-- HOLIDAYS RECAP -->
+  <div class="hol-recap" id="holRecap" style="display:none">
+    <div class="hol-recap-ttl">Jours fériés ce mois — récupérables (non comptés dans les attendus)</div>
+    <div class="hol-chips" id="holChips"></div>
+  </div>
+
+</div>
+
+<!-- CONFIG MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-title">⚙ Synchronisation Google Sheets</div>
+    <div class="modal-sub">Colle l'URL de ton Google Apps Script</div>
+    <div class="modal-steps">
+      <strong>Comment obtenir l'URL :</strong><br>
+      1. Ouvre ton Google Sheet<br>
+      2. Menu <strong>Extensions → Apps Script</strong><br>
+      3. Colle le fichier <code>google-apps-script.js</code> dans <code>Code.gs</code><br>
+      4. <strong>Déployer → Nouveau déploiement</strong><br>
+      5. Type : <strong>Application Web</strong> · Accès : <strong>Tout le monde</strong><br>
+      6. Copie l'URL et colle-la ci-dessous
+    </div>
+    <input class="modal-inp" id="modalUrl" type="url"
+      placeholder="https://script.google.com/macros/s/AKfy.../exec">
+    <div class="modal-btns">
+      <button class="btn-save" id="btnSave">Enregistrer &amp; Synchroniser</button>
+      <button class="btn-cancel" id="btnCancel">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════
+// CONSTANTES
+// ═══════════════════════════════════════════════════════
+const DAILY      = 7.6;                  // heures par jour ouvrable
+const LS_DATA    = 'cal_be_v5_data';     // clé localStorage pour les heures
+const LS_URL     = 'cal_be_v5_url';      // clé localStorage pour l'URL script
+
+const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const JOURS  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+
+// ═══════════════════════════════════════════════════════
+// ÉTAT GLOBAL — source unique de vérité
+// ═══════════════════════════════════════════════════════
+const G = {
+  year:      new Date().getFullYear(),
+  month:     new Date().getMonth(),   // 0-indexed
+  hours:     {},                       // { "YYYY-MM-DD": number | "RECUP" }
+  scriptUrl: localStorage.getItem(LS_URL) || '',
+};
+
+// ═══════════════════════════════════════════════════════
+// PERSISTANCE LOCALE
+// ═══════════════════════════════════════════════════════
+function saveLocal() {
+  try { localStorage.setItem(LS_DATA, JSON.stringify(G.hours)); } catch(e) {}
+}
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(LS_DATA);
+    if (raw) G.hours = JSON.parse(raw);
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════
+// CALCUL DE PÂQUES (Meeus/Jones/Butcher)
+// ═══════════════════════════════════════════════════════
+function easter(Y) {
+  const a=Y%19, b=Math.floor(Y/100), c=Y%100,
+        d=Math.floor(b/4), e=b%4, f=Math.floor((b+8)/25),
+        g=Math.floor((b-f+1)/3), h=(19*a+b-d-g+15)%30,
+        i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7,
+        m=Math.floor((a+11*h+22*l)/451),
+        mo=Math.floor((h+l-7*m+114)/31),
+        dy=((h+l-7*m+114)%31)+1;
+  return new Date(Y, mo-1, dy);
+}
+
+// ═══════════════════════════════════════════════════════
+// JOURS FÉRIÉS BELGES OFFICIELS
+// Retourne Set de strings "YYYY-MM-DD" + map nom
+// ═══════════════════════════════════════════════════════
+function holidays(Y) {
+  const E   = easter(Y);
+  const add = (d,n) => { const r=new Date(d); r.setDate(r.getDate()+n); return r; };
+  const fmt = d => `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+  const map = {
+    [fmt(new Date(Y,0,1))]:  'Nouvel An',
+
+    [fmt(E)]:                'Pâques',
+    [fmt(add(E,1))]:         'Lundi de Pâques',
+    [fmt(new Date(Y,4,1))]:  'Fête du Travail',
+    [fmt(add(E,39))]:        'Ascension',
+    [fmt(add(E,49))]:        'Pentecôte',
+    [fmt(add(E,50))]:        'Lundi de Pentecôte',
+    [fmt(new Date(Y,6,21))]: 'Fête Nationale',
+    [fmt(new Date(Y,7,15))]: 'Assomption',
+    [fmt(new Date(Y,10,1))]: 'Toussaint',
+    [fmt(new Date(Y,10,11))]:'Armistice',
+    [fmt(new Date(Y,11,25))]:'Noël',
+  };
+  return map;
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILITAIRES
+// ═══════════════════════════════════════════════════════
+function p2(n) { return String(n).padStart(2,'0'); }
+
+function dkey(Y,M,D) { return `${Y}-${p2(M+1)}-${p2(D)}`; }
+
+// Jour de semaine Lundi=0 … Dimanche=6
+function dow(Y,M,D) {
+  const d = new Date(Y,M,D).getDay(); // 0=Sun
+  return d===0 ? 6 : d-1;
+}
+
+/**
+ * Type d'un jour :
+ *   'work' = Lun–Ven hors férié → attendu 7.6h
+ *   'sat'  = Samedi hors férié  → bonus possible, 0h attendu
+ *   'sun'  = Dimanche           → bloqué
+ *   'hol'  = Jour férié (any)   → récupérable, 0h attendu
+ */
+function dayType(Y,M,D,hols) {
+  const k = dkey(Y,M,D);
+  if (hols[k]) return 'hol';
+  const d = dow(Y,M,D);
+  if (d===6)   return 'sun';
+  if (d===5)   return 'sat';
+  return 'work';
+}
+
+/**
+ * Formate ±heures décimales → "±Xh MM"
+ * Ex: -7.6 → "-7h36", +0.5 → "+0h30"
+ */
+function fmt(h, forceSign=true) {
+  const sign = h<0 ? '-' : (forceSign ? '+' : '');
+  const abs  = Math.abs(h);
+  const hr   = Math.floor(abs);
+  const mn   = Math.round((abs-hr)*60);
+  return `${sign}${hr}h${p2(mn)}`;
+}
+function fmtAbs(h) { return fmt(h,false); }
+
+// ═══════════════════════════════════════════════════════
+// CALCULS MENSUELS
+// ═══════════════════════════════════════════════════════
+/**
+ * Retourne pour un mois :
+ *   expectedTotal : total théorique de tous les jours Lun–Ven hors fériés
+ *   done          : heures réellement encodées (jours touchés uniquement)
+ *   expectedDone  : heures attendues sur les jours touchés uniquement
+ *   balance       : done - expectedDone  (sur jours touchés)
+ *   workdays      : nombre de jours Lun–Ven hors fériés du mois
+ *   holDays       : liste des jours fériés du mois
+ */
+function monthStats(Y, M) {
+  const hols  = holidays(Y);
+  const dMax  = new Date(Y,M+1,0).getDate();
+  let expectedTotal=0, expectedDone=0, done=0, workdays=0;
+  const holDays=[];
+
+  for (let D=1; D<=dMax; D++) {
+    const k      = dkey(Y,M,D);
+    const tp     = dayType(Y,M,D,hols);
+    const stored = G.hours[k];           // number | "RECUP" | undefined
+
+    // ── Jours ouvrables Lun–Ven ──
+    if (tp==='work') {
+      workdays++;
+      expectedTotal += DAILY;
+
+      if (stored==='RECUP') {
+        // Récupéré : jour dû, non presté → -7.6h sur la balance
+        expectedDone += DAILY;
+        // done += 0
+      } else if (typeof stored==='number' && stored>0) {
+        // Presté : on compare ce qui a été fait vs attendu
+        expectedDone += DAILY;
+        done         += stored;
+      }
+      // Jour futur non touché → pas d'impact sur balance
+    }
+
+    // ── Samedi ou Férié : bonus pur (0h attendu) ──
+    if ((tp==='sat'||tp==='hol') && typeof stored==='number' && stored>0) {
+      done += stored;
+    }
+
+    // ── Liste des fériés du mois ──
+    if (tp==='hol') {
+      holDays.push({D, k, name:hols[k]});
+    }
+  }
+
+  return {
+    expectedTotal,
+    expectedDone,
+    done,
+    balance: done - expectedDone,
+    workdays,
+    holDays,
+  };
+}
+
+/**
+ * Solde cumulé de tous les mois ANTÉRIEURS au mois courant.
+ * On somme balance de chaque mois qui a au moins une entrée.
+ */
+function prevCumul(curY, curM) {
+  const curPfx = `${curY}-${p2(curM+1)}`;
+  const seen   = new Set();
+
+  Object.keys(G.hours).forEach(k => {
+    const pfx = k.slice(0,7);
+    if (pfx < curPfx) seen.add(pfx);
+  });
+
+  let total = 0;
+  seen.forEach(pfx => {
+    const [pY, pM1] = pfx.split('-').map(Number);
+    const { balance } = monthStats(pY, pM1-1);
+    total += balance;
+  });
+  return total;
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDU DES STATS
+// ═══════════════════════════════════════════════════════
+function renderStats() {
+  const Y=G.year, M=G.month;
+  const { expectedTotal, done, balance, workdays, holDays } = monthStats(Y,M);
+  const prev  = prevCumul(Y,M);
+  const cumul = prev + balance;
+
+  // ── Heures attendues ──
+  document.getElementById('vExpected').textContent = fmtAbs(expectedTotal);
+  document.getElementById('sExpected').textContent = `${workdays} jours Lun–Ven hors fériés`;
+
+  // ── Heures prestées ──
+  const pfx     = `${Y}-${p2(M+1)}`;
+  const allKeys = Object.keys(G.hours).filter(k=>k.startsWith(pfx));
+  const nRecup  = allKeys.filter(k=>G.hours[k]==='RECUP').length;
+  const nWork   = allKeys.filter(k=>G.hours[k]!=='RECUP').length;
+  const pct     = expectedTotal>0 ? Math.min(100,(done/expectedTotal)*100) : 0;
+
+  document.getElementById('vDone').textContent = fmtAbs(done);
+  document.getElementById('sDone').textContent =
+    (nWork>0 ? `${nWork} jour${nWork>1?'s':''} presté${nWork>1?'s':''}` : '0 jour presté') +
+    (nRecup>0 ? ` · ${nRecup} récupéré${nRecup>1?'s':''}` : '');
+  document.getElementById('fDone').style.width = pct.toFixed(1)+'%';
+
+  // ── Balance ──
+  const vBal = document.getElementById('vBalance');
+  vBal.textContent = fmt(balance);
+  vBal.className   = 'card-val ' + (balance>0.01?'green':balance<-0.01?'red':'gold');
+
+  // ── Cumul ──
+  const vCum = document.getElementById('vCumul');
+  vCum.textContent = fmt(cumul);
+  vCum.className   = 'card-val ' + (cumul>0.01?'green':cumul<-0.01?'red':'gold');
+
+  // ── Cumul banner ──
+  const cv = document.getElementById('cumulVal');
+  cv.textContent = fmt(cumul);
+  cv.className   = 'cumul-val ' + (cumul>0.01?'green':cumul<-0.01?'red':'gold');
+
+  const prevSign = prev>=0?'+':'-';
+  document.getElementById('cumulDetail').innerHTML =
+    `Report mois précédents : <strong>${fmt(prev)}</strong><br>` +
+    `Balance ce mois : <strong>${fmt(balance)}</strong>`;
+
+  // ── Récap fériés ──
+  const recap = document.getElementById('holRecap');
+  if (holDays.length) {
+    recap.style.display='';
+    document.getElementById('holChips').innerHTML = holDays.map(({D,name})=>{
+      const dt=new Date(Y,M,D);
+      return `<span class="hol-chip">${JOURS[dt.getDay()]} ${D} — ${name}</span>`;
+    }).join('');
+  } else {
+    recap.style.display='none';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// BADGE JOURNALIER
+// ═══════════════════════════════════════════════════════
+function renderBadge(badgeEl, k, tp) {
+  const stored = G.hours[k];
+  if (stored===undefined) { badgeEl.textContent=''; badgeEl.className='day-badge'; return; }
+
+  if (stored==='RECUP') {
+    badgeEl.textContent = `↺ récupéré  ${fmt(-DAILY)}`;
+    badgeEl.className   = 'day-badge b-recup';
+  } else if (tp==='sat'||tp==='hol') {
+    badgeEl.textContent = `+${fmtAbs(stored)} bonus`;
+    badgeEl.className   = 'day-badge b-bonus';
+  } else {
+    const diff = stored - DAILY;
+    badgeEl.textContent = fmt(diff);
+    badgeEl.className   = 'day-badge '+(diff>0.01?'b-pos':diff<-0.01?'b-neg':'b-zero');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDU DU CALENDRIER
+// ═══════════════════════════════════════════════════════
+function render() {
+  const Y=G.year, M=G.month;
+  const hols    = holidays(Y);
+  const today   = new Date();
+  const todayK  = dkey(today.getFullYear(), today.getMonth(), today.getDate());
+  const dMax    = new Date(Y,M+1,0).getDate();
+  const offset  = dow(Y,M,1); // 0=Lun
+
+  document.getElementById('monthDisplay').textContent = `${MONTHS[M]} ${Y}`;
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  // Cellules vides
+  for (let i=0;i<offset;i++) {
+    const el=document.createElement('div');
+    el.className='day empty';
+    grid.appendChild(el);
+  }
+
+  // Jours du mois
+  for (let D=1;D<=dMax;D++) {
+    const k      = dkey(Y,M,D);
+    const tp     = dayType(Y,M,D,hols);
+    const stored = G.hours[k];
+    const isToday = k===todayK;
+
+    const cell = document.createElement('div');
+    cell.className = 'day '+tp+(isToday?' today':'')+(stored==='RECUP'?' recup':'');
+
+    // ── Top row ──
+    const top = document.createElement('div');
+    top.className = 'day-top';
+
+    const num = document.createElement('div');
+    num.className='day-num';
+    num.textContent=D;
+    top.appendChild(num);
+
+    // Tag
+    if (tp!=='work') {
+      const tag=document.createElement('span');
+      tag.className='day-tag tag-'+tp;
+      tag.textContent = tp==='hol'?'Férié':tp==='sat'?'Sam':'Dim';
+      top.appendChild(tag);
+    }
+    if (stored==='RECUP') {
+      const tag=document.createElement('span');
+      tag.className='day-tag tag-recup';
+      tag.textContent='Récup';
+      // Remove the 'work' tag if present, replace with recup
+      top.innerHTML='';
+      top.appendChild(num);
+      top.appendChild(tag);
+    }
+    cell.appendChild(top);
+
+    // ── Nom du jour férié ──
+    if (tp==='hol') {
+      const hn=document.createElement('div');
+      hn.className='day-holname';
+      hn.textContent=hols[k];
+      cell.appendChild(hn);
+    }
+
+    // ── Zone de saisie (tout sauf Dimanche) ──
+    if (tp!=='sun') {
+      // Input heures
+      const row=document.createElement('div');
+      row.className='inp-row';
+
+      const inp=document.createElement('input');
+      inp.className='h-inp';
+      inp.type='number';
+      inp.min='0';inp.max='24';inp.step='0.5';
+      inp.placeholder=(tp==='sat'||tp==='hol')?'0':'7.6';
+      if (typeof stored==='number') inp.value=stored;
+
+      // ── Événement changement heures ──
+      inp.addEventListener('change', function() {
+        const v = parseFloat(this.value);
+        if (!isNaN(v) && v>0) {
+          G.hours[k] = v;
+          // Retirer RECUP si on entre des heures
+          cell.classList.remove('recup');
+          if (rBtn) { rBtn.classList.remove('on'); rBtn.textContent='↺ marquer récupéré'; }
+          // Remettre le bon tag
+          resetTag(top,num,tp);
+        } else {
+          delete G.hours[k];
+          this.value='';
+        }
+        saveLocal();
+        pushOne(k, G.hours[k]);
+        renderBadge(badge,k,tp);
+        renderStats();
+      });
+
+      inp.addEventListener('click', e=>e.stopPropagation());
+
+      const unit=document.createElement('span');
+      unit.className='h-unit';
+      unit.textContent='h';
+      row.appendChild(inp);
+      row.appendChild(unit);
+      cell.appendChild(row);
+
+      // Badge
+      const badge=document.createElement('div');
+      badge.className='day-badge';
+      cell.appendChild(badge);
+      renderBadge(badge,k,tp);
+
+      // ── Bouton RÉCUP (Lun–Ven uniquement) ──
+      let rBtn=null;
+      if (tp==='work') {
+        rBtn=document.createElement('button');
+        rBtn.className='recup-btn'+(stored==='RECUP'?' on':'');
+        rBtn.textContent=stored==='RECUP'?'↺ récupéré — annuler':'↺ marquer récupéré';
+
+        rBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (G.hours[k]==='RECUP') {
+            // Annuler récupération
+            delete G.hours[k];
+            cell.classList.remove('recup');
+            this.classList.remove('on');
+            this.textContent='↺ marquer récupéré';
+            inp.value='';
+            resetTag(top,num,tp);
+          } else {
+            // Marquer récupéré
+            G.hours[k]='RECUP';
+            cell.classList.add('recup');
+            this.classList.add('on');
+            this.textContent='↺ récupéré — annuler';
+            inp.value='';
+            // Mettre le tag RECUP
+            top.innerHTML='';
+            top.appendChild(num);
+            const t=document.createElement('span');
+            t.className='day-tag tag-recup';
+            t.textContent='Récup';
+            top.appendChild(t);
+          }
+          saveLocal();
+          pushOne(k, G.hours[k]);
+          renderBadge(badge,k,tp);
+          renderStats();
+        });
+
+        cell.appendChild(rBtn);
+      }
+    }
+
+    grid.appendChild(cell);
+  }
+
+  renderStats();
+}
+
+function resetTag(top,num,tp) {
+  top.innerHTML='';
+  top.appendChild(num);
+  if (tp!=='work') {
+    const t=document.createElement('span');
+    t.className='day-tag tag-'+tp;
+    t.textContent=tp==='hol'?'Férié':tp==='sat'?'Sam':'Dim';
+    top.appendChild(t);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+document.getElementById('btnPrev').addEventListener('click',()=>{
+  G.month--; if(G.month<0){G.month=11;G.year--;} render();
+});
+document.getElementById('btnNext').addEventListener('click',()=>{
+  G.month++; if(G.month>11){G.month=0;G.year++;} render();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft')  document.getElementById('btnPrev').click();
+  if(e.key==='ArrowRight') document.getElementById('btnNext').click();
+});
+
+// ═══════════════════════════════════════════════════════
+// SYNC GOOGLE SHEETS
+// ═══════════════════════════════════════════════════════
+function setSyncStatus(s) {
+  const el = document.getElementById('syncBar');
+  const map = {
+    idle:    ['',                                     ''],
+    loading: ['⟳ Chargement depuis Google Sheets…',  'var(--blue)'],
+    saving:  ['⟳ Sauvegarde…',                       'var(--gold)'],
+    ok:      ['✓ Synchronisé avec Google Sheets',     'var(--green)'],
+    local:   ['💾 Mode local (pas de synchro config)','var(--muted)'],
+    err:     ['⚠ Erreur de synchronisation',          'var(--red)'],
+  };
+  const [txt,col] = map[s]||['',''];
+  el.textContent  = txt;
+  el.style.color  = col;
+}
+
+async function syncAll() {
+  if (!G.scriptUrl) { setSyncStatus('local'); return; }
+  setSyncStatus('loading');
+  try {
+    const res  = await fetch(G.scriptUrl, {method:'GET', cache:'no-cache'});
+    const data = await res.json();
+    if (data.ok && data.hours) {
+      G.hours = data.hours;
+      saveLocal();
+      render();
+      setSyncStatus('ok');
+    } else {
+      setSyncStatus('err');
+    }
+  } catch(e) {
+    setSyncStatus('err');
+  }
+}
+
+async function pushOne(k, value) {
+  if (!G.scriptUrl) return;
+  setSyncStatus('saving');
+  try {
+    const payload = { hours: { [k]: (value===undefined ? null : value) } };
+    await fetch(G.scriptUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(payload),
+    });
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('err');
+  }
+}
+
+document.getElementById('btnSync').addEventListener('click', syncAll);
+
+// ═══════════════════════════════════════════════════════
+// MODAL CONFIG
+// ═══════════════════════════════════════════════════════
+const modalBg = document.getElementById('modalBg');
+
+document.getElementById('btnCfg').addEventListener('click',()=>{
+  document.getElementById('modalUrl').value = G.scriptUrl;
+  modalBg.classList.add('open');
+});
+document.getElementById('btnCancel').addEventListener('click',()=>modalBg.classList.remove('open'));
+modalBg.addEventListener('click',e=>{ if(e.target===modalBg) modalBg.classList.remove('open'); });
+
+document.getElementById('btnSave').addEventListener('click',()=>{
+  const url = document.getElementById('modalUrl').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    alert('URL invalide.\nElle doit commencer par :\nhttps://script.google.com/macros/s/...');
+    return;
+  }
+  G.scriptUrl = url;
+  localStorage.setItem(LS_URL, url);
+  modalBg.classList.remove('open');
+  syncAll();
+});
+
+// ═══════════════════════════════════════════════════════
+// SERVICE WORKER (PWA)
+// ═══════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDU MOBILE (vue semaine)
+// ═══════════════════════════════════════════════════════
+const DAY_NAMES_SHORT = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+
+function renderMobile() {
+  const Y=G.year, M=G.month;
+  const hols    = holidays(Y);
+  const today   = new Date();
+  const todayK  = dkey(today.getFullYear(), today.getMonth(), today.getDate());
+  const dMax    = new Date(Y,M+1,0).getDate();
+  const offset  = dow(Y,M,1); // 0=Lun
+
+  const container = document.getElementById('weekCards');
+  container.innerHTML = '';
+
+  // Construire le tableau des jours avec cellules vides en début
+  const cells = [];
+  for(let i=0;i<offset;i++) cells.push(null);
+  for(let D=1;D<=dMax;D++) cells.push(D);
+
+  // Grouper par semaines de 7
+  const weeks = [];
+  for(let i=0;i<cells.length;i+=7) weeks.push(cells.slice(i,i+7));
+
+  weeks.forEach((week, wi) => {
+    // Ne pas afficher une semaine entièrement vide
+    if(week.every(d=>d===null)) return;
+
+    const card = document.createElement('div');
+    card.className = 'week-card';
+
+    // Label semaine
+    const lbl = document.createElement('div');
+    lbl.className = 'week-label';
+    const firstDay = week.find(d=>d!==null);
+    lbl.textContent = `Semaine ${wi+1}`;
+    card.appendChild(lbl);
+
+    const daysList = document.createElement('div');
+    daysList.className = 'week-days';
+
+    week.forEach((D, di) => {
+      if(D===null) return; // skip empty cells
+
+      const k      = dkey(Y,M,D);
+      const tp     = dayType(Y,M,D,hols);
+      const stored = G.hours[k];
+      const isToday = k===todayK;
+
+      const row = document.createElement('div');
+      row.className = 'm-day'
+        + (tp==='sun'    ? ' sun-row'   : '')
+        + (tp==='hol'    ? ' hol-row'   : '')
+        + (stored==='RECUP' ? ' recup-row' : '')
+        + (isToday       ? ' today-row' : '');
+
+      // ── Colonne gauche ──
+      const left = document.createElement('div');
+      left.className = 'm-day-left';
+
+      const dayName = document.createElement('div');
+      dayName.className = 'm-day-name';
+      dayName.textContent = DAY_NAMES_SHORT[di]; // di = 0=Lun…6=Dim
+
+      const numEl = document.createElement('div');
+      numEl.className = 'm-day-num';
+      numEl.textContent = D;
+
+      left.appendChild(dayName);
+      left.appendChild(numEl);
+
+      // Tag (férié ou récup)
+      if(tp==='hol') {
+        const tag = document.createElement('div');
+        tag.className = 'm-day-tag';
+        tag.textContent = hols[k];
+        left.appendChild(tag);
+      } else if(stored==='RECUP') {
+        const tag = document.createElement('div');
+        tag.className = 'm-day-tag recup-tag';
+        tag.textContent = '↺ récupéré';
+        left.appendChild(tag);
+      }
+
+      row.appendChild(left);
+
+      // ── Colonne centre (input + badge) — sauf Dimanche ──
+      const mid = document.createElement('div');
+      mid.className = 'm-day-mid';
+
+      if(tp !== 'sun') {
+        const inpRow = document.createElement('div');
+        inpRow.className = 'm-inp-row';
+
+        const inp = document.createElement('input');
+        inp.className = 'm-h-inp';
+        inp.type = 'number'; inp.min='0'; inp.max='24'; inp.step='0.5';
+        inp.placeholder = (tp==='sat'||tp==='hol') ? '0' : '7.6';
+        if(typeof stored==='number') inp.value = stored;
+        if(stored==='RECUP') { inp.value=''; inp.disabled=true; inp.style.opacity='0.3'; }
+
+        inp.addEventListener('change', function() {
+          const v = parseFloat(this.value);
+          if(!isNaN(v) && v>0) {
+            G.hours[k] = v;
+            if(rBtn) { rBtn.classList.remove('on'); rBtn.title='Marquer récupéré'; rBtn.textContent='↺'; }
+            row.classList.remove('recup-row');
+            // Remove recup tag if present
+            const oldTag = left.querySelector('.recup-tag');
+            if(oldTag) oldTag.remove();
+          } else {
+            delete G.hours[k];
+            this.value='';
+          }
+          saveLocal();
+          pushOne(k, G.hours[k]);
+          updateMBadge(badge, k, tp);
+          renderStats();
+        });
+        inp.addEventListener('click', e=>e.stopPropagation());
+
+        const unit = document.createElement('span');
+        unit.className = 'm-h-unit';
+        unit.textContent = 'h';
+
+        inpRow.appendChild(inp);
+        inpRow.appendChild(unit);
+        mid.appendChild(inpRow);
+
+        // Badge
+        const badge = document.createElement('div');
+        badge.className = 'm-badge';
+        updateMBadge(badge, k, tp);
+        mid.appendChild(badge);
+      }
+
+      row.appendChild(mid);
+
+      // ── Colonne droite (bouton récup — Lun–Ven seulement) ──
+      let rBtn = null;
+      if(tp==='work') {
+        rBtn = document.createElement('button');
+        rBtn.className = 'm-recup-btn' + (stored==='RECUP' ? ' on' : '');
+        rBtn.title = stored==='RECUP' ? 'Annuler récupération' : 'Marquer récupéré';
+        rBtn.textContent = '↺';
+
+        rBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const inp = mid.querySelector('.m-h-inp');
+          const badge = mid.querySelector('.m-badge');
+          if(G.hours[k]==='RECUP') {
+            delete G.hours[k];
+            row.classList.remove('recup-row');
+            this.classList.remove('on');
+            this.title='Marquer récupéré';
+            if(inp){ inp.disabled=false; inp.style.opacity=''; inp.value=''; }
+            const oldTag = left.querySelector('.recup-tag');
+            if(oldTag) oldTag.remove();
+          } else {
+            G.hours[k]='RECUP';
+            row.classList.add('recup-row');
+            this.classList.add('on');
+            this.title='Annuler récupération';
+            if(inp){ inp.value=''; inp.disabled=true; inp.style.opacity='0.3'; }
+            // Add tag
+            const oldTag = left.querySelector('.m-day-tag');
+            if(!oldTag) {
+              const tag=document.createElement('div');
+              tag.className='m-day-tag recup-tag';
+              tag.textContent='↺ récupéré';
+              left.appendChild(tag);
+            }
+          }
+          saveLocal();
+          pushOne(k, G.hours[k]);
+          updateMBadge(badge, k, tp);
+          renderStats();
+        });
+        row.appendChild(rBtn);
+      } else {
+        // Placeholder pour aligner
+        const ph = document.createElement('div');
+        ph.className = 'm-recup-btn-placeholder';
+        row.appendChild(ph);
+      }
+
+      daysList.appendChild(row);
+    });
+
+    card.appendChild(daysList);
+    container.appendChild(card);
+  });
+}
+
+function updateMBadge(el, k, tp) {
+  if(!el) return;
+  const stored = G.hours[k];
+  if(stored===undefined) { el.textContent=''; el.className='m-badge'; return; }
+  if(stored==='RECUP') {
+    el.textContent=`↺ −7h36`; el.className='m-badge b-recup';
+  } else if(tp==='sat'||tp==='hol') {
+    el.textContent=`+${fmtAbs(stored)} bonus`; el.className='m-badge b-bonus';
+  } else {
+    const diff=stored-DAILY;
+    el.textContent=fmt(diff);
+    el.className='m-badge '+(diff>0.01?'b-pos':diff<-0.01?'b-neg':'b-zero');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// DÉTECTION MOBILE + SWITCH VUES
+// ═══════════════════════════════════════════════════════
+const MQ = window.matchMedia('(max-width: 900px)');
+
+function applyView() {
+  // Use both MQ and window.innerWidth as fallback for PWA
+  const isMobile = MQ.matches || window.innerWidth <= 900;
+  const desktopCal = document.querySelector('.cal:not(#calMobile)');
+  const mobileCal  = document.getElementById('calMobile');
+  if(desktopCal) desktopCal.style.display = isMobile ? 'none' : '';
+  if(mobileCal)  mobileCal.style.display  = isMobile ? ''     : 'none';
+  if(isMobile) renderMobile();
+}
+
+MQ.addEventListener('change', applyView);
+
+// Override render to also update mobile
+const _render = render;
+window.render = function() {
+  _render();
+  if(MQ.matches) renderMobile();
+};
+
+// ═══════════════════════════════════════════════════════
+// DÉMARRAGE
+// ═══════════════════════════════════════════════════════
+loadLocal();
+render();
+applyView();
+
+if (G.scriptUrl) {
+  syncAll();
+} else {
+  setSyncStatus('local');
+}
+</script>
+</body>
+</html>
